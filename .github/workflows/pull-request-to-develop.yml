@@ -9,6 +9,7 @@ jobs:
   terraform:
     env:
         AWS_REGION: us-east-1
+        ENVIRONMENT: dev
 
     # Quando se conecta a alguma Cloud, as permissões abaixo precisam ser declaradas
     # Essa declaração ocorre tanto no arquivo principal como nos reusable workflows que são chamados
@@ -27,6 +28,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Assume secrets para conexão com a AWS
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -42,7 +44,10 @@ jobs:
         run: terraform init
 
       - name: Terraform Validate
-        run: terraform validate
+        run: terraform validate -var-file="inventories/${{ env.ENVIRONMENT }}/terraform.tfvars"
+
+      - name: Terraform Plan
+        run: terraform plan -var-file="inventories/${{ env.ENVIRONMENT }}/terraform.tfvars"
 
       - name: Terraform Show
         run: terraform show
