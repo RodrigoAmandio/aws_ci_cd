@@ -5,14 +5,17 @@ on:
     branches:
       - feature/** # Branches que se iniciam com feature/...
 
-# Quando se conecta a alguma Cloud, as permissões abaixo precisam ser declaradas
-# Essa declaração ocorre tanto no arquivo principal como nos reusable workflows que são chamados
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   terraform:
+    env:
+        AWS_REGION: us-east-1
+
+    # Quando se conecta a alguma Cloud, as permissões abaixo precisam ser declaradas
+    # Essa declaração ocorre tanto no arquivo principal como nos reusable workflows que são chamados
+    permissions:
+      id-token: write
+      contents: read
+    
     name: Terraform Init & Validate
     runs-on: ubuntu-latest
 
@@ -23,6 +26,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::870256785503:role/github_rodrigo_amandio_role
+          aws-region: ${{env.ENVIRONMENT}}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
