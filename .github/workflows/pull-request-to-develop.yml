@@ -44,7 +44,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Validate
-        run: terraform validate -var-file="inventories/${{ env.ENVIRONMENT }}/terraform.tfvars"
+        run: terraform validate
 
       - name: Terraform Plan
         run: terraform plan -var-file="inventories/${{ env.ENVIRONMENT }}/terraform.tfvars"
