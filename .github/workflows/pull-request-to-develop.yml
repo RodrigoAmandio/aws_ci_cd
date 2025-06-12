@@ -6,6 +6,45 @@ on:
       - feature/** # Branches que se iniciam com feature/...
 
 jobs:
+
+  check-formatting: # Este espaço pode receber qualquer nome. Será o nome que aparecerá na esteira
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 # GitHub Action used in workflows to check out your repository's code so subsequent steps in the workflow can access the files in it. It is like a download of the files.
+
+        # Uso de custom actions como parte de um job. Útil para tarefas repetitivas ao longo do código
+        # Sempre use abaixo do checkout
+      - name: Load and Cache Dependencies
+        id: cache-deps
+        uses: ./.github/actions/cached_dependencies # Não é necessário apontar o arquivo neste caso. O Github sempre vai buscar o arquivo actions.yml no prefixo informado.
+        with:
+          caching: 'true' #Passa essa variável como input para a custom action
+      
+      - name: Begin
+        run: echo "Beginning to check code formatting"
+
+      - name: Set up Python
+        uses: actions/setup-python@v4 # Instalar a linguagem que se deseja usar. Neste caso, Python
+        with:
+          python-version: '3.12'  # or any version you need
+      
+      - name: Run Black (check only)
+        run: |
+          echo "Checando a formatação do código com black"
+          black ./app --check
+      
+      - name: Run Isort (check only)
+        run: |
+          echo "Checando a ordenação de imports com isort"
+          isort ./app --check
+
+      - name: Run Isort (check only)
+        run: |
+          echo "Checando a estrutura do código com mypy"
+          mypy isort ./app --check
+
   terraform:
     env:
         AWS_REGION: us-east-1
