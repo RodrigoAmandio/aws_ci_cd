@@ -43,7 +43,7 @@ jobs:
       - name: Run Isort (check only)
         run: |
           echo "Checando a estrutura do código com mypy"
-          mypy isort ./app --check
+          mypy ./app --check
 
   terraform:
     needs: check-formatting
