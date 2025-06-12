@@ -10,4 +10,3 @@ tags                = {
     "tag_owner"         = "Rodrigo Amandio"
     "tag_managed_by"    = "Terraform"
 }
-tfstate_bucket      = "rodrigo-amandio-curso-terraform"

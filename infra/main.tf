@@ -11,9 +11,9 @@ terraform {
 
   # Local onde será salvo o arquivo terraform.tfstate, onde todos os recursos geridos serão guardados
   backend "s3" {
-    bucket = var.tfstate_bucket
+    bucket = "rodrigo-amandio-curso-terraform" # Não se permite variáveis neste ponto
     key    = "aws-cicd-lambda/terraform.tfstate"
-    region = var.region
+    region = "us-east-1" # Não se permite variáveis neste ponto
   }
 
 }
