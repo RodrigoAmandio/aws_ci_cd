@@ -46,6 +46,7 @@ jobs:
           mypy isort ./app --check
 
   terraform:
+    needs: check-formatting
     env:
         AWS_REGION: us-east-1
         ENVIRONMENT: dev
