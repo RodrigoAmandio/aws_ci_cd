@@ -1,0 +1,39 @@
+name: Pull Request Checking
+
+on: 
+  push:   
+    branches:
+      - feature/** # Branches que se iniciam com feature/...
+
+# Quando se conecta a alguma Cloud, as permissões abaixo precisam ser declaradas
+# Essa declaração ocorre tanto no arquivo principal como nos reusable workflows que são chamados
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform:
+    name: Terraform Init & Validate
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: infra
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Show
+        run: terraform show
