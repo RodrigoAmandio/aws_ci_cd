@@ -9,6 +9,7 @@ jobs:
 
   check-formatting: # Este espaço pode receber qualquer nome. Será o nome que aparecerá na esteira
     runs-on: ubuntu-latest
+    name: Check Formatting
 
     steps:
       - name: Checkout code
@@ -48,6 +49,7 @@ jobs:
   unit-tests:
     needs: check-formatting
     runs-on: ubuntu-latest
+    name: Unit Tests
 
     steps: 
       - name: Checkout code
@@ -131,12 +133,12 @@ jobs:
 
   create-pull-request:
     needs: terraform
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
+    name: Create Pull Request
+
     steps: 
     - name: Create Pull Request
-
-      if: ${{ success() }}
-      uses: peter-evans/create-pull-request@v6
+      uses: peter-evans/create-pull-request@v7.0.5
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         base: develop
