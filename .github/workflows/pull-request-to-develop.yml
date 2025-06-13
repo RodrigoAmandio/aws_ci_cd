@@ -44,9 +44,53 @@ jobs:
         run: |
           echo "Checando a estrutura do código com mypy"
           mypy ./app --check
+  
+  unit-tests:
+    needs: check-formatting
+    runs-on: ubuntu-latest
+
+    steps: 
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Load and Cache Dependencies
+        uses: ./.github/actions/cached_dependencies
+        with:
+          caching: 'true'
+
+      - name: Begin
+        run: echo "Beginning unit tests on lambda_function.py"
+
+      - name: Run tests with coverage
+        run: | # O resultado do teste unitário será salvo em um arquivo coverage_report.xml na raiz do repo e disponibilizado para o Codecov na sequência
+          coverage run -m unittest discover python/tests/
+          coverage xml -o coverage.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4 # Built-in do GitHub Actions para cobertura de testes
+        with:
+          files: coverage.xml
+          flags: unittests
+          fail_ci_if_error: true
+
+  
+  check-branch-name:
+    needs: unit-tests
+    runs-on: ubuntu-latest
+
+
+  check-commits-structure:
+    needs: check-branch-name
+    runs-on: ubuntu-latest
+
+
+  quality-checking:
+    needs: check-commits-structure
+    runs-on: ubuntu-latest
+
 
   terraform:
-    needs: check-formatting
+    needs: quality-checking
     env:
         AWS_REGION: us-east-1
         ENVIRONMENT: dev
@@ -91,3 +135,7 @@ jobs:
 
       - name: Terraform Show
         run: terraform show
+
+  create-pull-request:
+    needs: terraform
+    runs-on: ubuntu-latest
