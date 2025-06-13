@@ -1,0 +1,35 @@
+1. Sign in to Codecov
+    - Go to https://app.codecov.io
+
+    - Click “Sign in with GitHub”
+
+    - Authorize access if prompted
+
+2. Import Your GitHub Repository
+    - After signing in, Codecov shows your GitHub repositories
+
+    - Click “Add new repository” or find your repo in the list
+
+    - Click Enable next to the repository you want to track
+
+    - If the repo doesn't appear, click “Sync Repositories” on the left menu to refresh the list
+
+3. Copy the Upload Token
+    - Once your repo is enabled:
+
+    - Go to the repository page in Codecov
+
+    - Click Settings → Upload Token
+
+    - Copy the token shown
+
+4. Add the Token to GitHub Actions
+    - In your GitHub repo:
+
+    - Go to Settings → Secrets and variables → Actions or Environment Variables
+
+    - Click “New repository secret”
+
+    - ame: CODECOV_TOKEN
+
+    - Value: (paste the token you copied from Codecov)
