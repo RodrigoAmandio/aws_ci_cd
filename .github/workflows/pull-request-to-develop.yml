@@ -140,17 +140,16 @@ jobs:
 
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v7.0.5
+      uses: peter-evans/create-pull-request@v7
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         base: develop
-        branch: ${{ github.ref_name }}
-        title: "PR criado automaticamente: ${{ github.ref_name }}"
+        branch: auto-pr/${{ github.ref_name }}
+        title: "Auto PR: ${{ github.ref_name }}"
         body: |
-          Pull Request criado automaticamente após aprovação de todos os testes.
-
-          - Source branch: `${{ github.ref_name }}`
-          - Target branch: `develop`
+          Pull Request automatically created after all checks passed.
+          - Source: `${{ github.ref_name }}`
+          - Target: `develop`
         draft: false
