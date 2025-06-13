@@ -63,7 +63,7 @@ jobs:
 
       - name: Run tests with coverage
         run: | # O resultado do teste unitário será salvo em um arquivo coverage_report.xml na raiz do repo e disponibilizado para o Codecov na sequência
-          coverage run -m unittest discover python/tests/
+          coverage run -m unittest discover app/tests/
           coverage xml -o coverage.xml
 
       - name: Upload coverage to Codecov
