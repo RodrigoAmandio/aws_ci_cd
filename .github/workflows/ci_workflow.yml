@@ -96,7 +96,7 @@ jobs:
       id-token: write
       contents: read
     
-    name: Terraform Init & Validate
+    name: Terraform
     runs-on: ubuntu-latest
 
     defaults:
