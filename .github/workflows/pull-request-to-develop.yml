@@ -58,23 +58,30 @@ jobs:
         with:
           caching: 'true'
 
-      - name: Begin
-        run: echo "Beginning unit tests on lambda_function.py"
-
       - name: Run tests with coverage
-        run: | # O resultado do teste unitário será salvo em um arquivo coverage_report.xml na raiz do repo e disponibilizado para o Codecov na sequência
+
+        run: |
+          echo "Beginning unit tests on lambda_function.py"
           coverage run -m unittest discover app/tests/
-          coverage xml -o coverage.xml
+          coverage report
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4 # Built-in do GitHub Actions para cobertura de testes
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage.xml
-          flags: unittests
-          fail_ci_if_error: true
+          # Extract the coverage percent for app/lambda_function.py
+          COVERAGE=$(coverage report | grep "app/lambda_function.py" | awk '{print $NF}' | sed 's/%//')
 
-  
+          echo "Lambda function coverage: $COVERAGE%"
+
+          # Set threshold
+          THRESHOLD=80
+
+          if [ "$COVERAGE" -lt "$THRESHOLD" ]; then
+            echo "❌ Code coverage for lambda_function.py is below $THRESHOLD%"
+            exit 1
+          else
+            echo "✅ Code coverage is acceptable."
+          fi
+          
+        shell: bash
+
   # check-branch-name:
   #   needs: unit-tests
   #   runs-on: ubuntu-latest
