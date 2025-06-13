@@ -74,23 +74,23 @@ jobs:
           fail_ci_if_error: true
 
   
-  check-branch-name:
-    needs: unit-tests
-    runs-on: ubuntu-latest
+  # check-branch-name:
+  #   needs: unit-tests
+  #   runs-on: ubuntu-latest
 
 
-  check-commits-structure:
-    needs: check-branch-name
-    runs-on: ubuntu-latest
+  # check-commits-structure:
+  #   needs: check-branch-name
+  #   runs-on: ubuntu-latest
 
 
-  quality-checking:
-    needs: check-commits-structure
-    runs-on: ubuntu-latest
+  # quality-checking:
+  #   needs: check-commits-structure
+  #   runs-on: ubuntu-latest
 
 
   terraform:
-    needs: quality-checking
+    needs: unit-tests
     env:
         AWS_REGION: us-east-1
         ENVIRONMENT: dev
