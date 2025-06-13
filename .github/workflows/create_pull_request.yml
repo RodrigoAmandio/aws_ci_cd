@@ -1,0 +1,28 @@
+# A criação do PR request deve ser um workflow separado do CI
+# Isso ocorre para que as alterações locais sejam enviadas definitivamente ao repositório remoto
+# Posteriormente, o PR pode ser criado
+name: Create Pull Request
+
+on:
+  workflow_run:
+    workflows: ["CI Checking"] # Nome do workflow que ao terminar, ativará este
+    types:
+      - completed
+
+jobs:
+  create-pr:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: develop
+          branch: ${{ github.event.workflow_run.head_branch }}
+          title: "PR automático: ${{ github.event.workflow_run.head_branch }}" # workflow_run.head_branch gives you the branch name of the originating push.
+          body: |
+            Este PR foi criado automaticamente após os testes passarem.
