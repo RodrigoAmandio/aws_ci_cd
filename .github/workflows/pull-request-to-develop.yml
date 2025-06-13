@@ -141,6 +141,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Create temporary PR branch
+      run: |
+        TEMP_BRANCH="auto-pr/${GITHUB_REF_NAME}"
+        git checkout -b "$TEMP_BRANCH"
+        git push origin "$TEMP_BRANCH" --force
+
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v7
       with:
