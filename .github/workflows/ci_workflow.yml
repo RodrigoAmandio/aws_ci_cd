@@ -1,4 +1,4 @@
-name: Pull Request Checking
+name: CI Checking
 
 on: 
   push:   
@@ -130,26 +130,3 @@ jobs:
 
       - name: Terraform Show
         run: terraform show
-
-  create-pull-request:
-    needs: terraform
-    runs-on: ubuntu-latest
-    name: Create Pull Request
-
-    steps: 
-
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v7
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        base: develop
-        branch: ${{ github.ref_name }}
-        title: "Auto PR: ${{ github.ref_name }}"
-        body: |
-          Pull Request automatically created after all checks passed.
-          - Source: `${{ github.ref_name }}`
-          - Target: `develop`
-        draft: false
