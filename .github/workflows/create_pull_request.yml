@@ -31,7 +31,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: develop
-          branch: auto-pr/${{ github.event.workflow_run.head_branch }}
+          branch: ${{ github.event.workflow_run.head_branch }}
           title: "PR automático: ${{ github.event.workflow_run.head_branch }}"
           body: |
             Este PR foi criado automaticamente após os testes passarem.
