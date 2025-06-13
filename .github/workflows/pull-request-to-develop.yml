@@ -136,6 +136,6 @@ jobs:
       - name: Terraform Show
         run: terraform show
 
-  create-pull-request:
-    needs: terraform
-    runs-on: ubuntu-latest
+  # create-pull-request:
+  #   needs: terraform
+  #   runs-on: ubuntu-latest
