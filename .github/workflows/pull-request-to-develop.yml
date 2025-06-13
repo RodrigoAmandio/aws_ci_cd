@@ -82,21 +82,6 @@ jobs:
           
         shell: bash
 
-  # check-branch-name:
-  #   needs: unit-tests
-  #   runs-on: ubuntu-latest
-
-
-  # check-commits-structure:
-  #   needs: check-branch-name
-  #   runs-on: ubuntu-latest
-
-
-  # quality-checking:
-  #   needs: check-commits-structure
-  #   runs-on: ubuntu-latest
-
-
   terraform:
     needs: unit-tests
     env:
@@ -144,6 +129,22 @@ jobs:
       - name: Terraform Show
         run: terraform show
 
-  # create-pull-request:
-  #   needs: terraform
-  #   runs-on: ubuntu-latest
+  create-pull-request:
+    needs: terraform
+    runs-on: ubuntu-latest 
+    steps: 
+    - name: Create Pull Request
+
+      if: ${{ success() }}
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        base: develop
+        branch: ${{ github.ref_name }}
+        title: "PR criado automaticamente: ${{ github.ref_name }}"
+        body: |
+          Pull Request criado automaticamente após aprovação de todos os testes.
+
+          - Source branch: `${{ github.ref_name }}`
+          - Target branch: `develop`
+        draft: false
