@@ -21,7 +21,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          base: develop
+          base: main
           branch: ${{ github.event.workflow_run.head_branch }}
           title: "PR automático: ${{ github.event.workflow_run.head_branch }}" # workflow_run.head_branch gives you the branch name of the originating push.
           body: |
