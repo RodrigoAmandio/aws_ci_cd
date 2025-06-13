@@ -1,0 +1,33 @@
+name: Get and Cache Dependencies
+description: Get dependencies and cache them
+
+# Variáveis de input usadas no código
+inputs:
+  caching:
+    description: 'Wheter the dependencies must be cached or not'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite' #Pode ser JavaScript ou Docker
+  steps:
+
+    # Este step de cache precisa ser repetido em todos os steps que necessitam reaproveitar as dependências para que seja funcional
+    # O cache é usado inclusive entre diferentes execuções de workflows, agilizando o trabalho
+    # As dependências somente serão instaladas novamente caso o conteúdo de requirements.txt seja alterado
+    # Não use cache para artifacts
+    - name: Caching Dependencies # This caches the downloaded packages in ~/.cache/pip. If requirements.txt hasn’t changed, it reuses the cache.
+      if: inputs.caching == 'true'
+      id: cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip # What to cache (file or folder path)
+        key: ${{ runner.os }}-pip-${{ hashFiles('app/requirements.txt') }} # A unique identifier for the cache (e.g., based on OS and hash of requirements.txt)
+    
+    - name: Install dependencies
+      id: install
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r app/requirements.txt
+
+      shell: bash # Deve ser adicionado em custom actions todas as vezes que houver um comando run, como este.
