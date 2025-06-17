@@ -1,56 +1,75 @@
 # A criação do PR request deve ser um workflow separado do CI
 # Isso ocorre para que as alterações locais sejam enviadas definitivamente ao repositório remoto
 # Posteriormente, o PR pode ser criado
-# A melhor maneira de criar PR via Github Actions é via Github CLI
-# É necessário dar acesso ao Github Actions para criar Pull Requests e também leitura e escrita em Settings < Actions < General
 name: Create Pull Request
 
 on:
   workflow_run:
-    workflows: ["CI Checking"] # Iniciará sempre que o workflow CI Checking terminar
+    workflows: ["CI Checking"] # Dispara este workflow assim que o workflow de CI for concluído
     types:
       - completed
 
 jobs:
   create-pr:
+    # Executa este job somente se o workflow de CI tiver sido concluído com sucesso
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout branch
+      # Etapa 1: Buscar o nome da branch que originou o workflow de CI
+      - name: Obter informações do workflow de origem
+        id: get_workflow_info
+        run: |
+          echo "Buscando detalhes do workflow que disparou este..."
+          # Usa a API do GitHub para obter a branch de origem do workflow de CI
+          gh api \
+            /repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }} \
+            --jq '.head_branch' > branch.txt
+
+          # Lê o nome da branch e define como saída para ser reutilizado
+          BRANCH_NAME=$(cat branch.txt)
+          echo "head_branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Etapa 2: Fazer checkout da branch original (a branch que iniciou o CI)
+      - name: Checkout da branch de origem
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_branch }} # Branch que será a fonte das mudanças
+          ref: ${{ steps.get_workflow_info.outputs.head_branch }}
           fetch-depth: 0
 
-      - name: Authenticate GitHub CLI
+      # Etapa 3: Autenticar a CLI do GitHub para poder executar comandos como criar PR
+      - name: Autenticar CLI do GitHub
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-      
-      # Checa primeiramente se o PR já existe.
-      # Se sim, ele fará o output de uma variável "exists" para ser usado na etapa seguinte
-      # Caso o PR esteja aberto, ele fará o skip da criação de um novo, evitando assim uma falha
-      - name: Check if PR already exists 
 
+      # Etapa 4: Verificar se já existe um PR desta branch para a branch develop
+      - name: Verificar se PR já existe
         id: check_pr
         run: |
-          if gh pr view --head "${{ github.ref_name }}" --base develop --json url > pr.json 2>/dev/null; then
-            echo "PR already exists."
-            cat pr.json
+          BRANCH_NAME="${{ steps.get_workflow_info.outputs.head_branch }}"
+
+          # Verifica se já existe um PR com head = BRANCH_NAME e base = develop
+          if gh pr view --head "$BRANCH_NAME" --base develop --json url > pr.json 2>/dev/null; then
+            echo "PR já existe."
             echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "PR does not exist."
+            echo "PR ainda não existe."
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create PR (only if not exists)
+      # Etapa 5: Criar o PR apenas se ele ainda não existir
+      - name: Criar Pull Request (caso não exista)
         if: steps.check_pr.outputs.exists == 'false'
         run: |
+          BRANCH_NAME="${{ steps.get_workflow_info.outputs.head_branch }}"
+
           gh pr create \
-            --base develop \
-            --head "${{ github.ref_name }}" \
-            --title "PR automático: ${{ github.ref_name }}" \
+            --base develop \                          # Branch de destino
+            --head "$BRANCH_NAME" \                   # Branch de origem
+            --title "PR automático: $BRANCH_NAME" \
             --body "Este PR foi criado automaticamente após os testes passarem."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
