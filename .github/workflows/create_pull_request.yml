@@ -51,7 +51,6 @@ jobs:
           BRANCH_NAME: ${{ steps.get_workflow_info.outputs.head_branch }}
           REPO_OWNER: ${{ github.repository_owner }}
         run: |
-          BRANCH_NAME="${{ steps.get_workflow_info.outputs.head_branch }}"
           echo "Verifica se existe um PR da branch: $BRANCH_NAME para develop"
           echo "${REPO_OWNER}:${BRANCH_NAME}"
 
