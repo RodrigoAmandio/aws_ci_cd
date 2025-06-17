@@ -52,10 +52,10 @@ jobs:
           REPO_OWNER: ${{ github.repository_owner }}
         run: |
           echo "Verifica se existe um PR da branch: $BRANCH_NAME para develop"
-          echo "${REPO_OWNER}:${BRANCH_NAME}"
+          echo "${BRANCH_NAME}"
 
           # Verifica se já existe um PR com head = BRANCH_NAME e base = develop
-          if gh pr view --head "${REPO_OWNER}:${BRANCH_NAME}" --base develop --json url > pr.json 2>/dev/null; then
+          if gh pr view --head "${BRANCH_NAME}" --base develop --json url > pr.json 2>/dev/null; then
             echo "PR já existe."
             echo "exists=true" >> $GITHUB_OUTPUT
           else
