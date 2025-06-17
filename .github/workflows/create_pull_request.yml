@@ -44,22 +44,43 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
       # Etapa 4: Verificar se já existe um PR desta branch para a branch develop 
-      - name: Verificar se PR já existe
-        id: check_pr
+      # - name: Verificar se PR já existe
+      #   id: check_pr
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     BRANCH_NAME: ${{ steps.get_workflow_info.outputs.head_branch }}
+      #     REPO_OWNER: ${{ github.repository_owner }}
+      #   run: |
+      #     echo "Verifica se existe um PR da branch: $BRANCH_NAME para develop"
+      #     echo "${BRANCH_NAME}"
+
+      #     # Verifica se já existe um PR com head = BRANCH_NAME e base = develop
+      #     if gh pr view --head "${BRANCH_NAME}" --base develop --json url > pr.json 2>/dev/null; then
+      #       echo "PR já existe."
+      #       echo "exists=true" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "PR ainda não existe."
+      #       echo "exists=false" >> $GITHUB_OUTPUT
+      #     fi
+
+      - name: Verificar se PR com título existe
+        id: check_pr_title
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH_NAME: ${{ steps.get_workflow_info.outputs.head_branch }}
-          REPO_OWNER: ${{ github.repository_owner }}
+          TARGET_TITLE: "PR automático: ${{ steps.get_workflow_info.outputs.head_branch }}"
         run: |
-          echo "Verifica se existe um PR da branch: $BRANCH_NAME para develop"
-          echo "${BRANCH_NAME}"
+          echo "Verificando se existe PR com o título: '$TARGET_TITLE'"
 
-          # Verifica se já existe um PR com head = BRANCH_NAME e base = develop
-          if gh pr view --head "${BRANCH_NAME}" --base develop --json url > pr.json 2>/dev/null; then
-            echo "PR já existe."
+          # Lista todos os PRs abertos direcionados para develop
+          gh pr list --base develop --state open --json title > prs.json
+
+          # Verifica se algum PR tem o título exato
+          if jq -e --arg title "$TARGET_TITLE" '.[] | select(.title == $title)' prs.json > /dev/null; then
+            echo "PR já existe com esse título."
             echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "PR ainda não existe."
+            echo "PR ainda não existe com esse título."
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
