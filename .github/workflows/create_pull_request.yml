@@ -63,8 +63,13 @@ jobs:
       # Etapa 5: Criar o PR apenas se ele ainda não existir com as aspas em todos os valores que podem conter caracteres especiais
       - name: Criar Pull Request (caso não exista)
         if: steps.check_pr.outputs.exists == 'false'
+        shell: bash
         run: |
           BRANCH_NAME="${{ steps.get_workflow_info.outputs.head_branch }}"
+
+          echo "Branch: [$BRANCH_NAME]"
+          
+          echo "Criando PR da branch: $BRANCH_NAME para develop"
 
           gh pr create \
             --base "develop" \                          # Branch de destino
