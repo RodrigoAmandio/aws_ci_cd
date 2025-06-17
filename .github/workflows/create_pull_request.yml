@@ -46,8 +46,12 @@ jobs:
       # Etapa 4: Verificar se já existe um PR desta branch para a branch develop
       - name: Verificar se PR já existe
         id: check_pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: ${{ steps.get_workflow_info.outputs.head_branch }}
         run: |
           BRANCH_NAME="${{ steps.get_workflow_info.outputs.head_branch }}"
+          echo "Verifica se existe um PR da branch: $BRANCH_NAME para develop"
 
           # Verifica se já existe um PR com head = BRANCH_NAME e base = develop
           if gh pr view --head "$BRANCH_NAME" --base develop --json url > pr.json 2>/dev/null; then
@@ -57,8 +61,6 @@ jobs:
             echo "PR ainda não existe."
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Etapa 5: Criar o PR apenas se ele ainda não existir com as aspas em todos os valores que podem conter caracteres especiais
       - name: Criar Pull Request (caso não exista)
