@@ -1,0 +1,85 @@
+name: Deploy on Merge to Main
+
+on:
+  push:
+    branches:
+      - develop # Quando houver um merge em um pull request, significará um push na develop
+
+jobs:
+  create-zip-directory:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Zip Lambda function
+        run: |
+          mkdir infra/lambda-structure
+          cd app
+          zip -r ../infra/lambda-structure/lambda.zip .  # Package all contents of app/ into infra/lambda-structure/lambda.zip
+  
+      - name: Upload Lambda zip # Como a parte de deploy está em um outro step, é necessário passar o arquivo zip como um artefato para a próxima etapa
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-zip
+          path: infra/lambda-structure/lambda.zip
+
+  deploy-resources:
+    needs: create-zip-directory
+    env:
+      AWS_REGION: us-east-1
+      ENVIRONMENT: dev
+
+    # Quando se conecta a alguma Cloud, as permissões abaixo precisam ser declaradas
+    # Essa declaração ocorre tanto no arquivo principal como nos reusable workflows que são chamados
+    permissions:
+      id-token: write
+      contents: read
+    
+    name: Terraform
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: infra
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Lambda zip #Faz o download do artefato gerado no step anterior
+        uses: actions/download-artifact@v4
+        with:
+          name: lambda-zip
+          path: infra/lambda-structure  # same as in main.tf
+
+      # Assume secrets para conexão com a AWS
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::870256785503:role/github_rodrigo_amandio_role
+          aws-region: ${{env.AWS_REGION}}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -var-file="inventories/${{ env.ENVIRONMENT }}/terraform.tfvars"
+
+      - name: Terraform Show
+        run: terraform show
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -var-file="inventories/${{ env.ENVIRONMENT }}/terraform.tfvars"

@@ -4,7 +4,7 @@ locals {
   exec_policy_path  = "${path.module}/../../iamsr/policy/policy-lambda.json"
 }
 
-# ${path.module} points to infra/module/lambda, and:
+# ${path.module} points to infra/module/lambda, where this local.tf is present
 
 # ../../ goes to infra/
 
