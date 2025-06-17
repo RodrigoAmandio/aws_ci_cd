@@ -43,7 +43,7 @@ jobs:
       - name: Autenticar CLI do GitHub
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
-      # Etapa 4: Verificar se já existe um PR desta branch para a branch develop
+      # Etapa 4: Verificar se já existe um PR desta branch para a branch develop 
       - name: Verificar se PR já existe
         id: check_pr
         env:
