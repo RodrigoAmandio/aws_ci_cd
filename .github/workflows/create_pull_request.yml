@@ -53,6 +53,7 @@ jobs:
         run: |
           BRANCH_NAME="${{ steps.get_workflow_info.outputs.head_branch }}"
           echo "Verifica se existe um PR da branch: $BRANCH_NAME para develop"
+          echo ""${REPO_OWNER}:${BRANCH_NAME}""
 
           # Verifica se já existe um PR com head = BRANCH_NAME e base = develop
           if gh pr view --head "${REPO_OWNER}:${BRANCH_NAME}" --base develop --json url > pr.json 2>/dev/null; then
