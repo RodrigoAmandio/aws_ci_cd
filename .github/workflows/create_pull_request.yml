@@ -5,46 +5,81 @@ name: Create Pull Request
 
 on:
   workflow_run:
-    workflows: ["CI Checking"]
+    workflows: ["CI Checking"] # Dispara este workflow assim que o workflow de CI for concluído
     types:
       - completed
 
 jobs:
   create-pr:
+    # Executa este job somente se o workflow de CI tiver sido concluído com sucesso
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout branch
+      # Etapa 1: Buscar o nome da branch que originou o workflow de CI e exportar como variável
+      - name: Obter informações do workflow de origem
+        id: get_workflow_info
+        run: |
+          echo "Buscando detalhes do workflow que disparou este..."
+          # Usa a API do GitHub para obter a branch de origem do workflow de CI
+          gh api \
+            /repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }} \
+            --jq '.head_branch' > branch.txt
+
+          # Lê o nome da branch e define como saída para ser reutilizado
+          BRANCH_NAME=$(cat branch.txt)
+          echo "head_branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Etapa 2: Fazer checkout da branch original (a branch que iniciou o CI)
+      - name: Checkout da branch de origem
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_branch }}
+          ref: ${{ steps.get_workflow_info.outputs.head_branch }}
           fetch-depth: 0
 
-      - name: Authenticate GitHub CLI
+      # Etapa 3: Autenticar a CLI do GitHub para poder executar comandos como criar PR
+      - name: Autenticar CLI do GitHub
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
-      - name: Check if PR already exists
-        id: check_pr
+      # Checará a existência deste PR com base nos títulos de PRs abertos
+      - name: Verificar se PR com título existe
+        id: check_pr_title
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: ${{ steps.get_workflow_info.outputs.head_branch }}
+          TARGET_TITLE: "PR automático: ${{ steps.get_workflow_info.outputs.head_branch }}"
         run: |
-          if gh pr view --head "${{ github.ref_name }}" --base develop --json url > pr.json 2>/dev/null; then
-            echo "PR already exists."
-            cat pr.json
+          echo "Verificando se existe PR com o título: '$TARGET_TITLE'"
+
+          # Lista todos os PRs abertos direcionados para develop
+          gh pr list --base develop --state open --json title > prs.json
+
+          # Verifica se algum PR tem o título exato
+          if jq -e --arg title "$TARGET_TITLE" '.[] | select(.title == $title)' prs.json > /dev/null; then
+            echo "PR já existe com esse título."
             echo "exists=true" >> $GITHUB_OUTPUT
+          
           else
-            echo "PR does not exist."
+            echo "PR ainda não existe com esse título."
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create PR (only if not exists)
+      # Etapa 5: Criar o PR apenas se ele ainda não existir com as aspas em todos os valores que podem conter caracteres especiais
+      - name: Criar Pull Request (caso não exista)
         if: steps.check_pr.outputs.exists == 'false'
-        run: |
-          gh pr create \
-            --base develop \
-            --head "${{ github.ref_name }}" \
-            --title "PR automático: ${{ github.ref_name }}" \
-            --body "Este PR foi criado automaticamente após os testes passarem."
+        shell: bash
         env:
+          BRANCH_NAME: ${{ steps.get_workflow_info.outputs.head_branch }}  # 👈 Correctly interpolated in YAML
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+        run: |
+          echo "Branch: [$BRANCH_NAME]"
+          echo "Criando PR da branch: $BRANCH_NAME para develop"
+
+          gh pr create \
+            --base "develop" \
+            --head "$BRANCH_NAME" \
+            --title "PR automático: $BRANCH_NAME" \
+            --body "Este PR foi criado automaticamente após os testes passarem."
