@@ -67,8 +67,8 @@ jobs:
           BRANCH_NAME="${{ steps.get_workflow_info.outputs.head_branch }}"
 
           gh pr create \
-            --base develop \                          # Branch de destino
-            --head "$BRANCH_NAME" \                   # Branch de origem
+            --base "develop" \                          # Branch de destino
+            --head "$BRANCH_NAME" \                     # Branch de origem
             --title "PR automático: $BRANCH_NAME" \
             --body "Este PR foi criado automaticamente após os testes passarem."
         env:
