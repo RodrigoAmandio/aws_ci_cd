@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Etapa 1: Buscar o nome da branch que originou o workflow de CI
+      # Etapa 1: Buscar o nome da branch que originou o workflow de CI e exportar como variável
       - name: Obter informações do workflow de origem
         id: get_workflow_info
         run: |
@@ -60,11 +60,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Etapa 5: Criar o PR apenas se ele ainda não existir
+      # Etapa 5: Criar o PR apenas se ele ainda não existir com as aspas em todos os valores que podem conter caracteres especiais
       - name: Criar Pull Request (caso não exista)
         if: steps.check_pr.outputs.exists == 'false'
+        shell: bash
         run: |
           BRANCH_NAME="${{ steps.get_workflow_info.outputs.head_branch }}"
+
+          echo "Branch: [$BRANCH_NAME]"
+          
+          echo "Criando PR da branch: $BRANCH_NAME para develop"
 
           gh pr create \
             --base "develop" \                          # Branch de destino
