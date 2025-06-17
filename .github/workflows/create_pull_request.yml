@@ -68,7 +68,7 @@ jobs:
 
       # Etapa 5: Criar o PR apenas se ele ainda não existir com as aspas em todos os valores que podem conter caracteres especiais
       - name: Criar Pull Request (caso não exista)
-        if: steps.check_pr.outputs.exists == 'false'
+        if: steps.check_pr_title.outputs.exists == 'false'
         shell: bash
         env:
           BRANCH_NAME: ${{ steps.get_workflow_info.outputs.head_branch }}  # 👈 Correctly interpolated in YAML
