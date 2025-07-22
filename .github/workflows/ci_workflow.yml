@@ -41,7 +41,7 @@ jobs:
           echo "Checando a ordenação de imports com isort"
           isort ./app --check
 
-      - name: Run Isort (check only)
+      - name: Run Mypy (check only)
         run: |
           echo "Checando a estrutura do código com mypy"
           mypy ./app --check
