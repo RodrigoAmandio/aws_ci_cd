@@ -1,3 +1,2 @@
 # aws_ci_cd
-AWS resources create by Terraform via CI/CD
-
+AWS resources create by Terraform via CI/CD - Café com query
